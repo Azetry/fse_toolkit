@@ -1,21 +1,24 @@
 """
 Common utils, Forest Carbon Sink Evaluation
 """
-
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import rasterio
 from pyproj import Transformer
 
+
 from ..settings import STATION_RECORD_PATH
 
 
-def to_image(rgb_bands, display=False):
-    ''' Convert 3 bands to rgb image
-    rgb_bands: numpy array, 3 bands of the image (r, g, b)
-    display: bool, show the image or not
-    return: np.array, rgb image
+def save_image(rgb_bands, output_png):
+    ''' 
+    Save the image to the given path
+    rgb_bands: list, the bands of the image
+    output_png: str, the path to save the image
+    return: bool, True if the image is saved successfully, False otherwise
     '''
     # Stack the bands
     rgb = np.stack(rgb_bands, axis=0)
@@ -24,12 +27,17 @@ def to_image(rgb_bands, display=False):
     # Normalize the bands
     rgb = (rgb - np.nanmin(rgb)) / (np.nanmax(rgb) - np.nanmin(rgb))
 
-    # Show the image(optional)
-    if display:
-        plt.imshow(rgb)
-        plt.show()
+    plt.figure(figsize=(12, 8))
+    _ = plt.imshow(rgb)
+    plt.axis('off')
+    # 儲存圖片
+    plt.savefig(output_png,
+                dpi=300,
+                bbox_inches='tight',
+                pad_inches=0)
+    plt.close()
 
-    return rgb
+    return True
 
 def convert_grayscale_to_heatmap(array: np.array, output_png, item='ndvi'):
     """
@@ -38,13 +46,14 @@ def convert_grayscale_to_heatmap(array: np.array, output_png, item='ndvi'):
     array: np.array, grayscale array
     output_png: str, output path
     item: str, item name
+    return: bool, True if the image is saved successfully, False otherwise
     """
 
     # 計算基於矩陣大小的適當圖片尺寸
-    height, width = array.shape
-    fig_width = 20  # 可以調整這個基準值
-    fig_height = fig_width * (height / width)
-    
+    # height, width = array.shape
+    # fig_width = 20  # 可以調整這個基準值
+    # fig_height = fig_width * (height / width)
+
     # 創建圖形
     plt.figure(figsize=(12, 8))
 
@@ -76,6 +85,8 @@ def convert_grayscale_to_heatmap(array: np.array, output_png, item='ndvi'):
     plt.close()
 
     print(f"熱力圖已儲存至: {output_png}")
+
+    return True
 
 
 def get_lat_lon_bounds(src: rasterio.DatasetReader):
