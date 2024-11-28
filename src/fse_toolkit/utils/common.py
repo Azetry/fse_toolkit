@@ -122,11 +122,14 @@ def read_tif(tif_file):
 
         # 獲取影像的地理變換參數
         transform = src.transform
-        print("影像的地理變換矩陣:", transform)
+        # print("影像的地理變換矩陣:", transform)
 
         # 獲取 CRS (Coordinate Reference System)
         crs = src.crs
-        print("影像的座標參考系統:", crs)
+        # print("影像的座標參考系統:", crs)
+
+        # 計算每個像素的面積 (m^2)
+        pixel_area = get_pixel_area(transform)
 
         # 獲取影像的範圍
         bounds = src.bounds
@@ -150,8 +153,22 @@ def read_tif(tif_file):
         "crs": crs,
         "bounds": bounds,
         "coordinates": coordinates,
+        "pixel_area": pixel_area,
         "meta": meta
     }
+
+def get_pixel_area(transform):
+    ''' Get the pixel area of the image
+    transform: rasterio transform
+    return: float, the pixel area (m^2)
+    '''
+    # 計算每個像素的面積 (m^2)
+    # transform[0] 是像素寬度，transform[4] 是像素高度（通常為負數）
+    # 原理可參考：
+    # https://blog.csdn.net/MLH7M/article/details/121021731
+    # https://silverwind1982.pixnet.net/blog/post/160691705
+    # 已用經緯度轉換距離驗證過，數值正確，單位為平方公尺
+    return abs(transform[0] * transform[4])
 
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
